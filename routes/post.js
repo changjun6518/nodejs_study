@@ -8,6 +8,7 @@ var auth = require('../lib/auth');
 var db2 = require('../lib/db2');
 var shortid = require('shortid');
 
+const { Product } = require('../models');
 
 
 
@@ -20,9 +21,9 @@ router.get('/create', function(request, response) {
   var list = template.list(request.list);
   var html = template.HTML(title, list,
         `<form action="/post/create_process" method="post">
-        <p><input type="text" name="title" placeholder="title"></p>
+        <p><input type="text" name="pro_name" placeholder="pro_name"></p>
         <p>
-          <textarea name="description" placeholder="description"></textarea>
+          <textarea name="pro_post" placeholder="pro_post"></textarea>
         </p>
         <p>
           <input type="submit">
@@ -41,15 +42,23 @@ router.post('/create_process', function(request, response) {
     return false;
   }
     var post = request.body;
-    var id= shortid.generate();
+    var user = request.user;
+    Product.create({
+      pro_name: post.pro_name,
+      pro_post: post.pro_post,
+      author_name: user.dataValues.name,
+    }).then(pro => {
+      console.log("Data is created!")
+    response.redirect(`/post/${pro.pro_name}`)
+    });
 
-    db2.get('topics').push({
-      id: id,
-      title: post.title,
-      description: post.description,
-      user_id: request.user.id
-    }).write();
-    response.redirect(`/post/${id}`);
+// console.log("params : ", request.params);
+
+    // response.redirect(`/`);
+    // response.redirect(`/post/${pro_name}`);
+
+
+
     // db.query(`INSERT INTO post (name, title, description)
     // VALUES(?,?,?)`,
     // [post.name, post.title, post.description],
@@ -61,34 +70,61 @@ router.post('/create_process', function(request, response) {
     // });
 });
 
-router.get('/update/:pageId', function(request, response){
+router.get('/update/:pro_n', function(request, response){
   if(!auth.isOwner(request,response)){
     response.redirect('/');
     return false;
   }
-  var topic = db2.get('topics').find({id:request.params.pageId}).value();
-  if(topic.user_id !== request.user.id){
-    return response.redirect('/');
-  }
-  var title = topic.title;
-  var description = topic.description;
+  Product.findOne({
+    where:{ pro_name: request.params.pro_n }
+  }).then(pro => {
+    if(pro){
+  var pro_name = pro.pro_name;
+  var pro_post = pro.pro_post;
   var list = template.list(request.list);
-  var html = template.HTML(title, list,
+  var html = template.HTML("title", list,
         `
         <form action="/post/update_process" method="post">
-          <input type="hidden" name="id" value="${topic.id}">
-          <p><input type="text" name="title" placeholder="title" value="${title}"></p>
+          <input type="hidden" name="id" value="${pro.id}">
+          <p><input type="text" name="pro_name" placeholder="pro_name" value="${pro_name}"></p>
           <p>
-            <textarea name="description" placeholder="description">${description}</textarea>
+            <textarea name="pro_post" placeholder="pro_post">${pro_post}</textarea>
           </p>
           <p>
             <input type="submit">
           </p>
         </form>
         `,
-        `<a href="/post/create">create</a> <a href="/post/update/${topic.id}">update</a>`,
+        `<a href="/post/create">create</a> <a href="/post/update/${pro.pro_name}">update</a>`,
         auth.statusUI(request,response));
         response.send(html);
+    }
+  })
+
+
+  // var topic = db2.get('topics').find({id:request.params.pro_n}).value();
+  // if(topic.user_id !== request.user.id){
+  //   return response.redirect('/');
+  // }
+  // var title = topic.title;
+  // var description = topic.description;
+  // var list = template.list(request.list);
+  // var html = template.HTML(title, list,
+  //       `
+  //       <form action="/post/update_process" method="post">
+  //         <input type="hidden" name="id" value="${topic.id}">
+  //         <p><input type="text" name="title" placeholder="title" value="${title}"></p>
+  //         <p>
+  //           <textarea name="description" placeholder="description">${description}</textarea>
+  //         </p>
+  //         <p>
+  //           <input type="submit">
+  //         </p>
+  //       </form>
+  //       `,
+  //       `<a href="/post/create">create</a> <a href="/post/update/${topic.id}">update</a>`,
+  //       auth.statusUI(request,response));
+  //       response.send(html);
 
     // var filteredId = path.parse(request.params.pageId).base;
     // db.query(`SELECT * FROM post`, function(error, objects){
@@ -126,20 +162,46 @@ router.post('/update_process', function(request, response){
     return false;
   }
   var post = request.body;
-  var id = post.id;
-  var title = post.title;
-  var description = post.description;
-  var topic = db2.get('topics').find({id:id}).value();
-  console.log(topic);
-  if(topic.user_id !== request.user.id){
-    return response.redirect('/');
-  }
-  
-  db2.get('topics').find({id:id}).assign({
-    title:title, description:description
-  }).write();
 
-response.redirect(`/post/${topic.id}`);
+  Product.findOne({ where: { pro_name: post.id }})
+  .then(pro => {
+    if (pro) {
+      pro.update({ 
+        pro_name: post.pro_name,
+        pro_post: post.pro_post, 
+      })
+      .then(pro => {
+        response.redirect(`/post/${pro.pro_name}`);
+      });
+    }
+    else{
+      console.log("없는데 안되는데");
+      console.log("pro : ", pro);
+    }
+  });
+
+  // Product.update({
+  //   where:{pro_name: post.pro_name}
+  // },{
+  //   pro_name: post.pro_name,
+  //   pro_post: post.pro_post,
+  // }).then(pro=>{
+  //   response.redirect(`/post/${pro.pro_name}`);
+  // })
+  // var id = post.id;
+  // var title = post.title;
+  // var description = post.description;
+  // var topic = db2.get('topics').find({id:id}).value();
+  // console.log(topic);
+  // if(topic.user_id !== request.user.id){
+  //   return response.redirect('/');
+  // }
+  
+  // db2.get('topics').find({id:id}).assign({
+  //   title:title, description:description
+  // }).write();
+
+// response.redirect(`/post/${topic.id}`);
     // var post = request.body;
     // db.query(`UPDATE post SET title=?,description=? WHERE id=?`,[post.title, post.description, post.id],function(error,result){
     //     response.redirect(`/post/${post.id}`);
@@ -205,25 +267,51 @@ router.post('/delete_process', function(request, response){
 //         })
 //       });
 //   });
-router.get('/:pageId', (request, response, next) =>{
-  var topic = db2.get('topics').find({id:request.params.pageId}).value();
-  var user = db2.get('users').find({id:topic.user_id}).value();
-  var title = topic.title;
-  var description = topic.description;
-  var list = template.list(request.list);
+router.get('/:pro_n', (request, response, next) =>{
+  Product.findOne({
+    where:{pro_name: request.params.pro_n}
+  }).then(pro=>{
+    if(pro){
+      var title = pro.pro_name;
+      var description = pro.pro_post;
+      var list = template.list(request.list);
+    
+      var html = template.HTML(title, list,
+            `<h2>제목 : ${title}</h2>
+            내용 : ${description}
+            <p>작성자 : ${pro.author_name}</p>`,
+            `<a href="/post/create">create</a>
+            <a href="/post/update/${pro.pro_name}">update</a>
+            <form action="/post/delete_process" method="post">
+            <input type="hidden" name="id" value="${pro.pro_name}">
+            <input type="submit" value="delete">
+            </form>`,auth.statusUI(request,response)
+      );
+      response.send(html);
+    }else{
+      console.log("해당 물건이 없습니다!!!!!!!!");
+    }
+  })
 
-  var html = template.HTML(title, list,
-        `<h2>제목 : ${title}</h2>
-        내용 : ${description}
-        <p>작성자 : ${user.displayName}</p>`,
-        `<a href="/post/create">create</a>
-        <a href="/post/update/${topic.id}">update</a>
-        <form action="/post/delete_process" method="post">
-        <input type="hidden" name="id" value="${topic.id}">
-        <input type="submit" value="delete">
-        </form>`,auth.statusUI(request,response)
-  );
-  response.send(html);
+
+  // var topic = db2.get('topics').find({id:request.params.pageId}).value();
+  // var user = db2.get('users').find({id:topic.user_id}).value();
+  // var title = topic.title;
+  // var description = topic.description;
+  // var list = template.list(request.list);
+
+  // var html = template.HTML(title, list,
+  //       `<h2>제목 : ${title}</h2>
+  //       내용 : ${description}
+  //       <p>작성자 : ${user.displayName}</p>`,
+  //       `<a href="/post/create">create</a>
+  //       <a href="/post/update/${topic.id}">update</a>
+  //       <form action="/post/delete_process" method="post">
+  //       <input type="hidden" name="id" value="${topic.id}">
+  //       <input type="submit" value="delete">
+  //       </form>`,auth.statusUI(request,response)
+  // );
+  // response.send(html);
 });
 
 

@@ -7,6 +7,11 @@ var helmet = require('helmet')
 app.use(helmet());
 var session = require('express-session')
 var FileStore = require('session-file-store')(session)
+// var sequelize = require('./models').sequelize;
+
+// sequelize.sync();
+
+const { Product } = require('./models');
 
 
 app.use(express.static('public'));
@@ -23,18 +28,11 @@ app.use(session({
 
 var passport = require('./lib/passport')(app);
 
-app.post('/auth/login_process',
-  passport.authenticate('local', {
-  failureRedirect: '/auth/login',
-}), (req,res)=>{
-  req.session.save(()=>{
-    res.redirect('/');
-  })
-});
-
 app.get('*', function(request, response, next){
-  request.list = db2.get('topics').value();
-  next();
+  Product.findAll({}).then(pro=>{
+    request.list = pro;
+    next();
+  })
 });
 
 var indexRouter = require('./routes/index');
