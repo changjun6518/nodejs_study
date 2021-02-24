@@ -5,3 +5,5 @@
 현재 naver login with passport // mysql db 연동
 
 https://www.youtube.com/watch?v=g0xEToFHsZU
+
+https://youtu.be/M-tbdP9XAK0
