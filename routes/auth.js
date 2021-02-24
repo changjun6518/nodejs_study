@@ -49,17 +49,17 @@ module.exports = function(passport){
         var title = 'login';
         var list = template.list(request.list);
 
-        console.log("request.user", request.user);
-        User.findOne({
-          where: {email: request.user.email}
-        }).then(user=>{
+        // console.log("request.user", request.user);
+        // User.findOne({
+          // where: {email: email}
+        // }).then(user=>{
           var html = template.HTML(title, list,
             `<form action="/auth/register_process" method="post">
-            <p><input type="text" name="name" placeholder="name" value=${user.name}></p>
-            <p><input type="text" name="email" placeholder="email" value=${user.email}></p>
+            <p><input type="text" name="name" placeholder="name" value=''></p>
+            <p><input type="text" name="email" placeholder="email" value=''></p>
             <p><input type="password" name="pwd" placeholder="password" value="111"></p>
             <p><input type="password" name="pwd2" placeholder="password_confirm" value="111"></p>
-            <p><input type="text" name="displayName" placeholder="display name" value=${user.displayName}></p>
+            <p><input type="text" name="displayName" placeholder="display name" value=''></p>
             <p>
               <input type="submit" value="register">
             </p>
@@ -67,7 +67,7 @@ module.exports = function(passport){
         `,''
       );
       response.send(html);
-        })
+        // })
       // });
   });
 
