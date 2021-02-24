@@ -7,6 +7,7 @@ var helmet = require('helmet')
 app.use(helmet());
 var session = require('express-session')
 var FileStore = require('session-file-store')(session)
+
 // var sequelize = require('./models').sequelize;
 
 // sequelize.sync();
@@ -57,3 +58,4 @@ app.use(function (err, req, res, next) {
 app.listen(3000, function() {
   console.log('Example app listening on port 3000!')
 });
+
