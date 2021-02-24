@@ -18,6 +18,11 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
+      provider:{
+        type: DataTypes.STRING,
+        allowNull: true,
+        defaultValue: "None"
+      },
       created_at: {
         type: DataTypes.DATE,
         allowNull: false,

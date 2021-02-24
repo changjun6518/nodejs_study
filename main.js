@@ -8,9 +8,9 @@ app.use(helmet());
 var session = require('express-session')
 var FileStore = require('session-file-store')(session)
 
-// var sequelize = require('./models').sequelize;
+var sequelize = require('./models').sequelize;
 
-// sequelize.sync();
+sequelize.sync();
 
 const { Product } = require('./models');
 

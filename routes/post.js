@@ -162,8 +162,8 @@ router.post('/update_process', function(request, response){
     return false;
   }
   var post = request.body;
-
-  Product.findOne({ where: { pro_name: post.id }})
+  console.log("post : ", post);
+  Product.findOne({ where: { id: post.id }})
   .then(pro => {
     if (pro) {
       pro.update({ 
